@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.math.{BigDecimal, RoundingMode}
 
+import com.google.gson.{Gson, GsonBuilder}
 import org.apache.spark.sql.{Dataset, SparkSession}
 
 import scala.collection.mutable.ListBuffer
@@ -65,7 +66,7 @@ object MarketGenerator {
     baseline
   }
 
-  def generate(spark:SparkSession, baseline:Dataset[Baseline], date:String):Dataset[Trade] = {
+  def generate(spark:SparkSession, baseline:Dataset[Baseline], date:String):Dataset[String] = {
     import spark.implicits._
 
     val startTimeStr = "%s %s".format(date, DAY_START_TIME_FORMAT)
@@ -81,7 +82,7 @@ object MarketGenerator {
       val symbol = v.symbol
 
       // Prepare output buffer
-      val quoteList = new ListBuffer[Trade]
+      val quoteList = new ListBuffer[String]
 
       // Init calendar
       val calendar = Calendar.getInstance
@@ -89,7 +90,7 @@ object MarketGenerator {
       val sdfDate = new SimpleDateFormat("yyyy-MM-dd")
       val startTime = sdfTime.parse(startTimeStr)
       calendar.setTime(startTime)
-
+      val gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss.SSS").create()
       val step = 8 * 3600 * 1000 / volume
 
       for (i <- 1 to volume) {
@@ -101,8 +102,12 @@ object MarketGenerator {
         val eventTime = new Timestamp(calendar.getTime.getTime)
 
         bidPrice.setScale(2, RoundingMode.CEILING)
-//        quoteList.append(new Quote(date, symbol, eventTime, i, exchange, bidPrice, bidSize, askPrice, askSize))
-        quoteList.append(new Trade(date, symbol, "EX-" + i, eventTime, i, exchange, bidPrice, BigDecimal.valueOf(Math.round(Math.random * 1000))))
+        val quote = new Quote(date, symbol, eventTime, i, exchange, bidPrice, bidSize, askPrice, askSize)
+        quoteList.append(quote.toCsv())
+        if (i % volume / 10 == 0) {
+          val trade = new Trade(date, symbol, "EX-" + i, eventTime, i, exchange, bidPrice, BigDecimal.valueOf(Math.round(Math.random * 1000)))
+          quoteList.append(trade.toJson(gson))
+        }
       }
       quoteList.toList
     })

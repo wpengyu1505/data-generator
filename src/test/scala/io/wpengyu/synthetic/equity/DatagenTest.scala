@@ -35,9 +35,8 @@ class DatagenTest {
     //      .mode("overwrite")
     //      .save(outputLocation)
 
-    data.selectExpr("trade_dt", "symbol", "execution_id", "event_tm", "event_seq_nb", "exchange", "cast(price as decimal(10, 2))", "cast(size as int)").show(100, false)
-    data.selectExpr("trade_dt", "symbol", "execution_id", "event_tm", "event_seq_nb", "exchange", "cast(price as decimal(10, 2))", "cast(size as int)")
-      .write.mode("overwrite")
+    data.show(100, false)
+    data.write.mode("overwrite")
       .format("csv")
       .option("timestampFormat", "yyyy-MM-dd HH:mm:ss.SSSSSS")
       .save("target/datagen/data")
