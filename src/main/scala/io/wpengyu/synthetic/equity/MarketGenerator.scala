@@ -13,8 +13,10 @@ import scala.collection.mutable.ListBuffer
 object MarketGenerator {
 
   val DAY_START_TIME_FORMAT = "09:30:00.000"
+  val EVENT_TYPE_TRADE = "T"
+  val EVENT_TYPE_QUOTE = "Q"
   def main(args: Array[String]): Unit = {
-    if (args.length < 4) {
+    if (args.length < 6) {
       println("Usage: MarketGenerator <date:YYYY-MM-DD> <seed file>")
       System.exit(1)
     }
@@ -24,6 +26,7 @@ object MarketGenerator {
     val outputLocation = args(2)
     val exchangeListStr = args(3)
     val unitVolume = args(4)
+    val format = args(5)
 
     val spark = SparkSession.builder
       .appName("MarketGenerator")
@@ -39,7 +42,7 @@ object MarketGenerator {
       .as[Seed]
 
     val baseline = convertSeedToBaseline(spark, seed, exchangeListStr.split(","), unitVolume.toInt)
-    val data = generate(spark, baseline, procDate)
+    val data = generate(spark, baseline, procDate, format)
 
 //    data.write.format("com.databricks.spark.csv")
 //      .option("delimiter", ",")
@@ -66,7 +69,7 @@ object MarketGenerator {
     baseline
   }
 
-  def generate(spark:SparkSession, baseline:Dataset[Baseline], date:String):Dataset[String] = {
+  def generate(spark:SparkSession, baseline:Dataset[Baseline], date:String, format: String):Dataset[String] = {
     import spark.implicits._
 
     val startTimeStr = "%s %s".format(date, DAY_START_TIME_FORMAT)
@@ -102,11 +105,23 @@ object MarketGenerator {
         val eventTime = new Timestamp(calendar.getTime.getTime)
 
         bidPrice.setScale(2, RoundingMode.CEILING)
-        val quote = new Quote(date, symbol, eventTime, i, exchange, bidPrice, bidSize, askPrice, askSize)
-        quoteList.append(quote.toCsv())
-        if (i % volume / 10 == 0) {
-          val trade = new Trade(date, symbol, "EX-" + i, eventTime, i, exchange, bidPrice, BigDecimal.valueOf(Math.round(Math.random * 1000)))
-          quoteList.append(trade.toJson(gson))
+
+        if (i % 10 == 0) {
+          val trade = new Trade(date, EVENT_TYPE_TRADE, symbol, "EX-" + i, eventTime, i, exchange, bidPrice, BigDecimal.valueOf(Math.round(Math.random * 1000)))
+          quoteList.append(
+            format match {
+              case "csv" => trade.toCsv()
+              case "json" => trade.toJson(gson)
+            }
+          )
+        } else {
+          val quote = new Quote(date, EVENT_TYPE_QUOTE, symbol, eventTime, i, exchange, bidPrice, bidSize, askPrice, askSize)
+          quoteList.append(
+            format match {
+              case "csv" => quote.toCsv()
+              case "json" => quote.toJson(gson)
+            }
+          )
         }
       }
       quoteList.toList

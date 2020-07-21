@@ -28,7 +28,7 @@ class DatagenTest {
       .as[Seed]
 
     val baseline = convertSeedToBaseline(ss, seed, exchangeListStr.split(","), unitVolume.toInt)
-    val data = generate(ss, baseline, procDate)
+    val data = generate(ss, baseline, procDate, "csv")
 
     //    data.write.format("com.databricks.spark.csv")
     //      .option("delimiter", ",")
@@ -37,9 +37,8 @@ class DatagenTest {
 
     data.show(100, false)
     data.write.mode("overwrite")
-      .format("csv")
       .option("timestampFormat", "yyyy-MM-dd HH:mm:ss.SSSSSS")
-      .save("target/datagen/data")
+      .text("target/datagen/data")
 
     val meta = seed.selectExpr("symbol", "symbol || 'Corporation'")
     meta.show(100, false)

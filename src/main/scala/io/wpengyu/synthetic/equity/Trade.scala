@@ -7,6 +7,7 @@ import com.google.gson.Gson
 
 case class Trade(
   trade_dt:String,
+  event_type:String,
   symbol:String,
   execution_id:String,
   event_tm:Timestamp,
@@ -18,6 +19,7 @@ case class Trade(
   def toCsv(): String = {
     val outputRecord = new StringBuilder()
     outputRecord.append(trade_dt).append(",")
+    outputRecord.append(event_type).append(",")
     outputRecord.append(symbol).append(",")
     outputRecord.append(event_tm).append(",")
     outputRecord.append(event_seq_nb).append(",")
