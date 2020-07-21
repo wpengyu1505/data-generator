@@ -1,0 +1,4 @@
+symbol,source_pr
+SYMA,76.96
+SYMB,34.26
+SYMC,159.12
