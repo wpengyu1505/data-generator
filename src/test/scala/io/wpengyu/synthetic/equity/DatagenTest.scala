@@ -18,8 +18,8 @@ class DatagenTest {
     val ss = TestUtils.spark
     val procDate = "2020-06-26"
     val outputLocation = "target/datagen"
-    val exchangeListStr = "NYSE"
-    val unitVolume = 10000
+    val exchangeListStr = "NASDAQ"
+    val unitVolume = 100
     val seedLocation = "src/test/resources/synthetic/seed.txt"
     import ss.implicits._
     val seed = ss.read
@@ -28,7 +28,7 @@ class DatagenTest {
       .as[Seed]
 
     val baseline = convertSeedToBaseline(ss, seed, exchangeListStr.split(","), unitVolume.toInt)
-    val data = generate(ss, baseline, procDate, "csv")
+    val data = generate(ss, baseline, procDate, "json")
 
     //    data.write.format("com.databricks.spark.csv")
     //      .option("delimiter", ",")

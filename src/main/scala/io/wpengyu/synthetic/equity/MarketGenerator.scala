@@ -44,16 +44,13 @@ object MarketGenerator {
     val baseline = convertSeedToBaseline(spark, seed, exchangeListStr.split(","), unitVolume.toInt)
     val data = generate(spark, baseline, procDate, format)
 
-//    data.write.format("com.databricks.spark.csv")
-//      .option("delimiter", ",")
-//      .mode("overwrite")
-//      .save(outputLocation)
-
-    data.write.mode("overwrite").parquet(outputLocation)
+    data.write.mode("overwrite")
+      .option("timestampFormat", "yyyy-MM-dd HH:mm:ss.SSSSSS")
+      .text(outputLocation)
 
     // Write out the symbol metadata
-    seed.selectExpr("symbol", "concat(symbol, ' Corporation'")
-      .write.mode("overwrite").parquet(outputLocation + "_meta")
+//    seed.selectExpr("symbol", "concat(symbol, ' Corporation'")
+//      .write.mode("overwrite").parquet(outputLocation + "_meta")
 
   }
 
