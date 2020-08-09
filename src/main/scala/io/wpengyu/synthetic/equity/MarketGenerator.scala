@@ -93,6 +93,7 @@ object MarketGenerator {
       val gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss.SSS").create()
       val step = 8 * 3600 * 1000 / volume
 
+      val fileTime = new Timestamp(startTime.getTime)
       for (i <- 1 to volume) {
         calendar.add(Calendar.MILLISECOND, step + (Math.random * step).toInt)
         val bidPrice = BigDecimal.valueOf(sourcePrice.doubleValue() + (Math.random - 0.5) * 5)
@@ -104,7 +105,7 @@ object MarketGenerator {
         bidPrice.setScale(2, RoundingMode.CEILING)
 
         if (i % 10 == 0) {
-          val trade = new Trade(date, EVENT_TYPE_TRADE, symbol, "EX-" + i, eventTime, i, exchange, bidPrice, BigDecimal.valueOf(Math.round(Math.random * 1000)))
+          val trade = new Trade(date, fileTime, EVENT_TYPE_TRADE, symbol, "EX-" + i, eventTime, i, exchange, bidPrice, BigDecimal.valueOf(Math.round(Math.random * 1000)))
           quoteList.append(
             format match {
               case "csv" => trade.toCsv()
@@ -112,7 +113,7 @@ object MarketGenerator {
             }
           )
         } else {
-          val quote = new Quote(date, EVENT_TYPE_QUOTE, symbol, eventTime, i, exchange, bidPrice, bidSize, askPrice, askSize)
+          val quote = new Quote(date, fileTime, EVENT_TYPE_QUOTE, symbol, eventTime, i, exchange, bidPrice, bidSize, askPrice, askSize)
           quoteList.append(
             format match {
               case "csv" => quote.toCsv()

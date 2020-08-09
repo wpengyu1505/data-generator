@@ -7,6 +7,7 @@ import com.google.gson.Gson
 
 case class Quote (
   trade_dt:String,
+  file_tm:Timestamp,
   event_type:String,
   symbol:String,
   event_tm:Timestamp,
@@ -20,6 +21,7 @@ case class Quote (
   def toCsv(): String = {
     val outputRecord = new StringBuilder()
     outputRecord.append(trade_dt).append(",")
+    outputRecord.append(file_tm).append(",")
     outputRecord.append(event_type).append(",")
     outputRecord.append(symbol).append(",")
     outputRecord.append(event_tm).append(",")
